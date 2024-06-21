@@ -104,6 +104,19 @@ class MonoBasicBlock(nn.Module):
                 )
 
 
+class MonoSequential(nn.Module):
+    def __init__(self, layers):
+        super().__init__()
+        self.layers = layers
+
+    def forward(self, x, clip_embeddings):
+        l = 0.0
+        for layer in self.layers:
+            x, ln = layer(x, clip_embeddings)
+            l += ln
+        return x, l
+
+
 class BottleNeck(nn.Module):
     """Residual block for resnet over 50 layers
 
@@ -178,7 +191,7 @@ class ResNet(nn.Module):
             layers.append(block(self.in_channels, out_channels, stride))
             self.in_channels = out_channels * block.expansion
 
-        return nn.Sequential(*layers)
+        return MonoSequential(layers)
 
     def forward(self, x):
         output = self.conv1(x)
@@ -220,6 +233,7 @@ def monoresnet34():
     """ return a ResNet 34 object
     """
     return MonoResNet(MonoBasicBlock, [3, 4, 6, 3])
+
 
 def resnet18():
     """ return a ResNet 18 object
