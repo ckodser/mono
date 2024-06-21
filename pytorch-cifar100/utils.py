@@ -180,11 +180,13 @@ class Cifar100_with_CLIP_embedding(torch.utils.data.Dataset):
             file2 = 'clipembeddingdata/train_embeddings_tensor.pt'
 
             # Download the files
-            with open(file1, 'wb') as f:
-                f.write(requests.get(url1).content)
+            if not os.path.isfile(file1):
+                with open(file1, 'wb') as f:
+                    f.write(requests.get(url1).content)
 
-            with open(file2, 'wb') as f:
-                f.write(requests.get(url2).content)
+            if not os.path.isfile(file2):
+                with open(file2, 'wb') as f:
+                    f.write(requests.get(url2).content)
 
         if train:
             self.embeddings = torch.load("clipembeddingdata/train_embeddings_tensor.pt")

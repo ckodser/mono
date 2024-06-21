@@ -78,7 +78,7 @@ def train(epoch):
 def monotrain(epoch, alpha=0.0001):
     start = time.time()
     net.train()
-    for batch_index, ((images, clip_embeddings), labels) in enumerate(cifar100_with_clip_training_loader):
+    for batch_index, ((images, clip_embeddings), labels) in enumerate(cifar100_training_loader):
         if args.gpu:
             labels = labels.cuda()
             images = images.cuda()
