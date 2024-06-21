@@ -195,7 +195,7 @@ class ResNet(nn.Module):
 
 class MonoResNet(ResNet):
     def forward(self, x, clip_embedding):
-        output = self.conv1(x, clip_embedding)
+        output = self.conv1(x)
         output, l = self.conv2_x(output, clip_embedding)
         output, ln = self.conv3_x(output, clip_embedding)
         l += ln
