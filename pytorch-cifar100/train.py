@@ -75,7 +75,7 @@ def train(epoch):
     print('epoch {} training time consumed: {:.2f}s'.format(epoch, finish - start))
 
 
-def monotrain(epoch, alpha=0.0001):
+def monotrain(epoch, alpha=0.2):
     start = time.time()
     net.train()
     for batch_index, ((images, clip_embeddings), labels) in enumerate(cifar100_training_loader):
