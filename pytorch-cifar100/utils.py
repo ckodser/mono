@@ -176,8 +176,8 @@ class Cifar100_with_CLIP_embedding(torch.utils.data.Dataset):
             url1 = 'https://dl.dropboxusercontent.com/scl/fi/r0k18zlvi0qaoirxevzt3/test_embeddings_tensor-1.pt?rlkey=7nlcb94p5eu43g0gdget93riy&st=pyc4jw3s&dl=1'
 
             # File names to save the downloaded files
-            file1 = 'test_embeddings_tensor.pt'
-            file2 = 'train_embeddings_tensor.pt'
+            file1 = 'clipembeddingdata/test_embeddings_tensor.pt'
+            file2 = 'clipembeddingdata/train_embeddings_tensor.pt'
 
             # Download the files
             with open(file1, 'wb') as f:
