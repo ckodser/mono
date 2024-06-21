@@ -93,7 +93,7 @@ def monotrain(epoch, alpha=0.0001):
 
         n_iter = (epoch - 1) * len(cifar100_training_loader) + batch_index + 1
 
-        last_layer = list(net.children())[-1]
+        # last_layer = list(net.children())[-1]
         # for name, para in last_layer.named_parameters():
         #     if 'weight' in name:
         #         writer.add_scalar('LastLayerGradients/grad_norm2_weights', para.grad.norm(), n_iter)
@@ -145,7 +145,7 @@ def eval_training(epoch=0, tb=True):
 
         if args.mono:
             im, clipembedding = images
-            outputs = net(im, clipembeddingdata)
+            outputs = net(im, clipembedding)
             monoloss += outputs[1].item()
             outputs = outputs[0]
         else:
