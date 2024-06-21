@@ -86,7 +86,8 @@ def monotrain(epoch, alpha=0.0001):
 
         optimizer.zero_grad()
         outputs, l = net(images, clip_embeddings)
-        loss = loss_function(outputs, labels) + l * alpha
+        classification_loss = loss_function(outputs, labels)
+        loss = classification_loss + l * alpha
         loss.backward()
         optimizer.step()
 
@@ -99,8 +100,9 @@ def monotrain(epoch, alpha=0.0001):
         #     if 'bias' in name:
         #         writer.add_scalar('LastLayerGradients/grad_norm2_bias', para.grad.norm(), n_iter)
 
-        print('Training Epoch: {epoch} [{trained_samples}/{total_samples}]\tLoss: {:0.4f}\tLR: {:0.6f}'.format(
-            loss.item(),
+        print('Training Epoch: {epoch} [{trained_samples}/{total_samples}]\tClassification Loss: {:0.4f}\tClip Loss: {:0.8f}\tLR: {:0.6f}'.format(
+            classification_loss.item(),
+            l.item() * alpha,
             optimizer.param_groups[0]['lr'],
             epoch=epoch,
             trained_samples=batch_index * args.b + len(images),
@@ -134,13 +136,20 @@ def eval_training(epoch=0, tb=True):
     for (images, labels) in cifar100_test_loader:
 
         if args.gpu:
-            images = images.cuda()
+            if args.mono:
+                a, b = images
+                images = (a.cuda(), b.cuda())
+            else:
+                images = images.cuda()
             labels = labels.cuda()
 
-        outputs = net(images)
-        if len(outputs) > 1:
+        if args.mono:
+            im, clipembedding = images
+            outputs = net(im, clipembeddingdata)
             monoloss += outputs[1].item()
             outputs = outputs[0]
+        else:
+            outputs = net(images)
 
         loss = loss_function(outputs, labels)
 
@@ -153,13 +162,14 @@ def eval_training(epoch=0, tb=True):
         print('GPU INFO.....')
         print(torch.cuda.memory_summary(), end='')
     print('Evaluating Network.....')
-    print('Test set: Epoch: {}, Average Mono loss: {:.8f}, Average loss: {:.4f}, Accuracy: {:.4f}, Time consumed:{:.2f}s'.format(
-        epoch,
-        monoloss / len(cifar100_test_loader.dataset),
-        test_loss / len(cifar100_test_loader.dataset),
-        correct.float() / len(cifar100_test_loader.dataset),
-        finish - start
-    ))
+    print(
+        'Test set: Epoch: {}, Average Mono loss: {:.8f}, Average loss: {:.4f}, Accuracy: {:.4f}, Time consumed:{:.2f}s'.format(
+            epoch,
+            monoloss / len(cifar100_test_loader.dataset),
+            test_loss / len(cifar100_test_loader.dataset),
+            correct.float() / len(cifar100_test_loader.dataset),
+            finish - start
+        ))
     print()
 
     # add informations to tensorboard
