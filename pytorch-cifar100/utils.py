@@ -192,7 +192,7 @@ class Cifar100_with_CLIP_embedding(torch.utils.data.Dataset):
             self.embeddings = torch.load("clipembeddingdata/test_embeddings_tensor.pt")
 
     def __len__(self):
-        return len(self.images)
+        return len(self.cifar100)
 
     def __getitem__(self, idx):
         img, label = self.cifar100[idx]
