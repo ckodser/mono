@@ -98,6 +98,9 @@ class MonoBasicBlock(nn.Module):
     def forward(self, x, clip_embeddings):
         step1 = self.residual_function_first_part(x)
         x = nn.ReLU()(self.residual_function_second_part(step1) + self.shortcut(x))
+        print("step1.shape:", step1.flatten(start_dim=2).mean(dim=2).shape, "pred.shape:", self.residual_feature_first_part(clip_embeddings).shape)
+        pritn("step2.shape:", x.flatten(start_dim=2).mean(dim=2).shape, "pred.shape:", self.residual_feature_whole_part(clip_embeddings).shape)
+        print()
         return (x,
                 self.loss(step1.flatten(start_dim=2).mean(dim=2), self.residual_feature_first_part(clip_embeddings)) + \
                 self.loss(x.flatten(start_dim=2).mean(dim=2), self.residual_feature_whole_part(clip_embeddings))
