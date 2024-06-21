@@ -110,7 +110,7 @@ class MonoBasicBlock(nn.Module):
 class MonoSequential(nn.Module):
     def __init__(self, layers):
         super().__init__()
-        self.layers = layers
+        self.layers = nn.ModuleList(layers)
 
     def forward(self, x, clip_embeddings):
         l = 0.0
