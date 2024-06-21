@@ -59,10 +59,16 @@ def get_network(args):
     elif args.net == 'xception':
         from models.xception import xception
         net = xception()
-    elif args.net == 'resnet18':
+    elif args.net == 'resnet18' and args.mono:
+        from models.resnet import monoresnet18
+        net = monoresnet18()
+    elif args.net == 'resnet34' and args.mono:
+        from models.resnet import monoresnet34
+        net = monoresnet34()
+    elif args.net == 'resnet18' and not args.mono:
         from models.resnet import resnet18
         net = resnet18()
-    elif args.net == 'resnet34':
+    elif args.net == 'resnet34' and not args.mono:
         from models.resnet import resnet34
         net = resnet34()
     elif args.net == 'resnet50':
