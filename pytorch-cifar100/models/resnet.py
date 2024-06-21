@@ -98,9 +98,9 @@ class MonoBasicBlock(nn.Module):
     def forward(self, x, clip_embeddings):
         step1 = self.residual_function_first_part(x)
         x = nn.ReLU()(self.residual_function_second_part(step1) + self.shortcut(x))
-        print("step1.shape:", step1.flatten(start_dim=2).mean(dim=2).shape, "pred.shape:", self.residual_feature_first_part(clip_embeddings).shape)
-        print("step2.shape:", x.flatten(start_dim=2).mean(dim=2).shape, "pred.shape:", self.residual_feature_whole_part(clip_embeddings).shape)
-        print()
+        # print("step1.shape:", step1.flatten(start_dim=2).mean(dim=2).shape, "pred.shape:", self.residual_feature_first_part(clip_embeddings).shape)
+        # print("step2.shape:", x.flatten(start_dim=2).mean(dim=2).shape, "pred.shape:", self.residual_feature_whole_part(clip_embeddings).shape)
+        # print()
         return (x,
                 self.loss(step1.flatten(start_dim=2).mean(dim=2), self.residual_feature_first_part(clip_embeddings)) + \
                 self.loss(x.flatten(start_dim=2).mean(dim=2), self.residual_feature_whole_part(clip_embeddings))
@@ -219,7 +219,7 @@ class MonoResNet(ResNet):
         l += ln
         output, ln = self.conv5_x(output, clip_embedding)
         l += ln
-        output = self.avg_pool(output, clip_embedding)
+        output = self.avg_pool(output)
         output = output.view(output.size(0), -1)
         output = self.fc(output)
 
