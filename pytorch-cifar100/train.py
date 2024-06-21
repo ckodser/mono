@@ -235,11 +235,14 @@ if __name__ == '__main__':
     writer = SummaryWriter(log_dir=os.path.join(
         settings.LOG_DIR, args.net, settings.TIME_NOW))
     if args.mono:
-        input_tensor = (torch.Tensor(1, 3, 32, 32), torch.Tensor(1, 728))
+        if not args.gpu:
+            input_tensor = (torch.Tensor(1, 3, 32, 32), torch.Tensor(1, 728))
+        if args.gpu:
+            input_tensor = (torch.Tensor(1, 3, 32, 32).cuda(), torch.Tensor(1, 728).cuda())
     else:
         input_tensor = torch.Tensor(1, 3, 32, 32)
-    if args.gpu:
-        input_tensor = input_tensor.cuda()
+        if args.gpu:
+            input_tensor = input_tensor.cuda()
     writer.add_graph(net, input_tensor)
 
     # create checkpoint folder to save model
