@@ -189,9 +189,10 @@ class Cifar100_with_CLIP_embedding(torch.utils.data.Dataset):
                     f.write(requests.get(url2).content)
 
         if train:
-            self.embeddings = torch.load("clipembeddingdata/train_embeddings_tensor.pt")
+            self.embeddings = torch.load("clipembeddingdata/train_embeddings_tensor.pt").cpu()
         else:
-            self.embeddings = torch.load("clipembeddingdata/test_embeddings_tensor.pt")
+            self.embeddings = torch.load("clipembeddingdata/test_embeddings_tensor.pt").cpu()
+        print("embedding device:", self.embeddings.device)
 
     def __len__(self):
         return len(self.cifar100)
