@@ -75,7 +75,7 @@ def train(epoch):
     print('epoch {} training time consumed: {:.2f}s'.format(epoch, finish - start))
 
 
-def monotrain(epoch, alpha=0.2):
+def monotrain(epoch, alpha=0.3):
     start = time.time()
     net.train()
     for batch_index, ((images, clip_embeddings), labels) in enumerate(cifar100_training_loader):
@@ -102,7 +102,7 @@ def monotrain(epoch, alpha=0.2):
 
         print('Training Epoch: {epoch} [{trained_samples}/{total_samples}]\tClassification Loss: {:0.4f}\tClip Loss: {:0.8f}\tLR: {:0.6f}'.format(
             classification_loss.item(),
-            l.item() * alpha,
+            l.item(),
             optimizer.param_groups[0]['lr'],
             epoch=epoch,
             trained_samples=batch_index * args.b + len(images),
@@ -190,6 +190,7 @@ if __name__ == '__main__':
     parser.add_argument('-lr', type=float, default=0.1, help='initial learning rate')
     parser.add_argument('-resume', action='store_true', default=False, help='resume training')
     parser.add_argument('-mono', action='store_true', default=False, help='monosematicisty')
+    parser.add_argument('-alpha', type=float, default=0.3, help='alpha for monosematicisty')
     args = parser.parse_args()
 
     net = get_network(args)
@@ -288,7 +289,7 @@ if __name__ == '__main__':
             if epoch <= resume_epoch:
                 continue
         if args.mono:
-            monotrain(epoch)
+            monotrain(epoch, alpha=args.alpha)
         else:
             train(epoch)
         acc = eval_training(epoch)
