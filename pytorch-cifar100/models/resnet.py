@@ -62,8 +62,8 @@ class top_k_percent_one_side(nn.Module):
         modified_target = torch.zeros_like(target)
         modified_target.scatter_(1, top_k_indices, 1)
 
-        loss_fn = nn.BCEWithLogitsLoss(pos_weight=modified_target * (1 / self.k - 2) + 1)
-        loss = loss_fn(output, modified_target)
+        loss_fn = nn.BCEWithLogitsLoss(pos_weight=modified_target.flatten() * (1 / self.k - 2) + 1)
+        loss = loss_fn(output.flatten(), modified_target.flatten())
 
         return loss
 
