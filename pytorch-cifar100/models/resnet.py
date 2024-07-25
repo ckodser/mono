@@ -58,7 +58,7 @@ class top_k_percent_one_side(nn.Module):
     def forward(self, output, target):
         num_elements = target.size(0)
         top_k = int(self.k * num_elements)
-        _, top_k_indices = torch.topk(target, top_k, dim=1)
+        _, top_k_indices = torch.topk(target, top_k, dim=0)
         modified_target = torch.zeros_like(target)
         modified_target.scatter_(1, top_k_indices, 1)
 
