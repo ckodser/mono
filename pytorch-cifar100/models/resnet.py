@@ -50,6 +50,33 @@ class BasicBlock(nn.Module):
         return nn.ReLU(inplace=True)(self.residual_function(x) + self.shortcut(x))
 
 
+class top_k_percent_one_side(nn.Module):
+    def __init__(self, k):
+        super().__init__()
+        self.k = k
+
+    def forward(self, output, target):
+        num_elements = target.size(0)
+        top_k = int(self.k * num_elements)
+        _, top_k_indices = torch.topk(target, top_k, dim=1)
+        modified_target = torch.zeros_like(target)
+        modified_target.scatter_(1, top_k_indices, 1)
+
+        loss_fn = nn.BCEWithLogitsLoss(pos_weight=modified_target * (1 / self.k - 2) + 1)
+        loss = loss_fn(output, modified_target)
+
+        return loss
+
+
+class top_k_percent_two_side(nn.Module):
+    def __init__(self, k):
+        super().__init__()
+        self.loss = top_k_percent_one_side(k)
+
+    def forward(self, a, b):
+        return self.loss(a, b) + self.loss(b, a)
+
+
 class MonoBasicBlock(nn.Module):
     """Basic Block for resnet 18 and resnet 34
 
@@ -72,7 +99,6 @@ class MonoBasicBlock(nn.Module):
 
         self.residual_feature_first_part = nn.Sequential(
             nn.Linear(clipd, out_channels),
-            nn.ReLU()
         )
         self.residual_function_second_part = nn.Sequential(
             nn.Conv2d(out_channels, out_channels * BasicBlock.expansion, kernel_size=3, padding=1, bias=False),
@@ -80,7 +106,6 @@ class MonoBasicBlock(nn.Module):
         )
         self.residual_feature_whole_part = nn.Sequential(
             nn.Linear(clipd, out_channels * BasicBlock.expansion),
-            nn.ReLU()
         )
         # shortcut
         self.shortcut = nn.Sequential()
@@ -93,7 +118,8 @@ class MonoBasicBlock(nn.Module):
                 nn.BatchNorm2d(out_channels * BasicBlock.expansion)
             )
 
-        self.loss = nn.MSELoss()
+        # self.loss = nn.ReLUMSELoss()
+        self.loss = top5percent_match()
 
     def forward(self, x, clip_embeddings):
         step1 = self.residual_function_first_part(x)
