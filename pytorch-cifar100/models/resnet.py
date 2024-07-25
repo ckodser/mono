@@ -119,7 +119,7 @@ class MonoBasicBlock(nn.Module):
             )
 
         # self.loss = nn.ReLUMSELoss()
-        self.loss = top5percent_match()
+        self.loss = top_k_percent_two_side()
 
     def forward(self, x, clip_embeddings):
         step1 = self.residual_function_first_part(x)
