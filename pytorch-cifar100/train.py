@@ -151,9 +151,11 @@ def eval_training(epoch=0, tb=True):
             outputs, ac = net(im, clipembedding, activations=True)
             for i, (activation, prediction) in enumerate(ac):
                 if len(activations) <= i:
+                    print("ACTIVATION Layer", i, activation.shape)
                     activations.append(activation)
                     predictions.append(prediction)
                 else:
+                    print(activations[i].shape, activation.shape)
                     activations[i] = torch.cat(activations[i], activation, dim=0)
                     predictions[i] = torch.cat(predictions[i], prediction, dim=0)
 
