@@ -156,6 +156,8 @@ class MonoSequential(nn.Module):
         for layer in self.layers:
             x, ln = layer(x, clip_embeddings, activations=activations)
             l += ln
+        if activations:
+            print("In MonoSequential:", type(l))
         return x, l
 
 
@@ -261,6 +263,9 @@ class MonoResNet(ResNet):
         output = self.avg_pool(output)
         output = output.view(output.size(0), -1)
         output = self.fc(output)
+
+        if activations:
+            print("In MonoResNet:", type(l))
 
         return output, l
 
