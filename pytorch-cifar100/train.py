@@ -151,11 +151,9 @@ def eval_training(epoch=0, tb=True):
             outputs, ac = net(im, clipembedding, activations=True)
             for i, (activation, prediction) in enumerate(ac):
                 if len(activations) <= i:
-                    print("ACTIVATION Layer", i, activation.shape)
                     activations.append(activation)
                     predictions.append(prediction)
                 else:
-                    print(activations[i].shape, activation.shape, "=>", end="")
                     activations[i] = torch.cat((activations[i], activation), dim=0)
                     predictions[i] = torch.cat((predictions[i], prediction), dim=0)
                     print(activations[i].shape)
@@ -171,7 +169,7 @@ def eval_training(epoch=0, tb=True):
 
     if args.mono:
         from sklearn.metrics import confusion_matrix
-        for i in range(activations):
+        for i in range(len(activations)):
             print(f"Layer {i}: top5% ", end="")
             activation = activations[i]  # torch.concatinate(activations, dim=1)
             prediction = predictions[i]  # torch.concatinate(predictions, dim=1)
