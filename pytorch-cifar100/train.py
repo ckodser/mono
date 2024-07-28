@@ -100,14 +100,15 @@ def monotrain(epoch, alpha=0.3):
         #     if 'bias' in name:
         #         writer.add_scalar('LastLayerGradients/grad_norm2_bias', para.grad.norm(), n_iter)
 
-        print('Training Epoch: {epoch} [{trained_samples}/{total_samples}]\tClassification Loss: {:0.4f}\tClip Loss: {:0.8f}\tLR: {:0.6f}'.format(
-            classification_loss.item(),
-            l.item(),
-            optimizer.param_groups[0]['lr'],
-            epoch=epoch,
-            trained_samples=batch_index * args.b + len(images),
-            total_samples=len(cifar100_training_loader.dataset)
-        ))
+        print(
+            'Training Epoch: {epoch} [{trained_samples}/{total_samples}]\tClassification Loss: {:0.4f}\tClip Loss: {:0.8f}\tLR: {:0.6f}'.format(
+                classification_loss.item(),
+                l.item(),
+                optimizer.param_groups[0]['lr'],
+                epoch=epoch,
+                trained_samples=batch_index * args.b + len(images),
+                total_samples=len(cifar100_training_loader.dataset)
+            ))
 
         # update training loss for each iteration
         # writer.add_scalar('Train/loss', loss.item(), n_iter)
@@ -133,6 +134,8 @@ def eval_training(epoch=0, tb=True):
     test_loss = 0.0  # cost function error
     correct = 0.0
     monoloss = 0.0
+    activations = []
+    predictions = []
     for (images, labels) in cifar100_test_loader:
 
         if args.gpu:
@@ -145,9 +148,16 @@ def eval_training(epoch=0, tb=True):
 
         if args.mono:
             im, clipembedding = images
-            outputs = net(im, clipembedding)
-            monoloss += outputs[1].item()
+            outputs = net(im, clipembedding, activation=True)
             outputs = outputs[0]
+            for i, (activation, prediction) in enumerate(outputs[1]):
+                if len(activations) == 0:
+                    activations.append(activation)
+                    predictions.append(prediction)
+                else:
+                    activations[i] = torch.cat(activations[i], activation, dim=0)
+                    predictions[i] = torch.cat(predictions[i], prediction, dim=0)
+
         else:
             outputs = net(images)
 
@@ -156,6 +166,40 @@ def eval_training(epoch=0, tb=True):
         test_loss += loss.item()
         _, preds = outputs.max(1)
         correct += preds.eq(labels).sum()
+
+    if args.mono:
+        from sklearn.metrics import confusion_matrix
+        for i in range(activations):
+            print(f"Layer {i}: top5% ", end="")
+            activation = activations[i]  # torch.concatinate(activations, dim=1)
+            prediction = predictions[i]  # torch.concatinate(predictions, dim=1)
+
+            num_elements = activation.size(0)
+            top_k = int(0.05 * num_elements)
+
+            _, top_k_indices = torch.topk(activation, top_k, dim=0)
+            modified_activation = torch.zeros_like(activation)
+            modified_activation.scatter_(0, top_k_indices, 1)
+
+            _, top_k_indices = torch.topk(prediction, top_k, dim=0)
+            modified_prediction = torch.zeros_like(prediction)
+            modified_prediction.scatter_(0, top_k_indices, 1)
+
+            tn, fp, fn, tp = confusion_matrix(modified_activation.flatten(), modified_prediction.flatten())
+            print(f"tn:{tn}, fp:{fp}, fn:{fn}, tp:{tp} XXX top1% ", end="")
+
+            top_k = int(0.01 * num_elements)
+
+            _, top_k_indices = torch.topk(activation, top_k, dim=0)
+            modified_activation = torch.zeros_like(activation)
+            modified_activation.scatter_(0, top_k_indices, 1)
+
+            _, top_k_indices = torch.topk(prediction, top_k, dim=0)
+            modified_prediction = torch.zeros_like(prediction)
+            modified_prediction.scatter_(0, top_k_indices, 1)
+
+            tn, fp, fn, tp = confusion_matrix(modified_activation.flatten(), modified_prediction.flatten())
+            print(f"tn:{tn}, fp:{fp}, fn:{fn}, tp:{tp}")
 
     finish = time.time()
     if args.gpu:

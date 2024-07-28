@@ -56,13 +56,14 @@ class top_k_percent_one_side(nn.Module):
         self.k = k
 
     def forward(self, output, target):
-        num_elements = target.size(0)
-        top_k = int(self.k * num_elements)
-        _, top_k_indices = torch.topk(target, top_k, dim=0)
-        modified_target = torch.zeros_like(target)
-        modified_target.scatter_(0, top_k_indices, 1)
+        with torch.no_grad():
+            num_elements = target.size(0)
+            top_k = int(self.k * num_elements)
+            _, top_k_indices = torch.topk(target, top_k, dim=0)
+            modified_target = torch.zeros_like(target)
+            modified_target.scatter_(0, top_k_indices, 1)
 
-        loss_fn = nn.BCEWithLogitsLoss(weight=(modified_target.flatten() * (1 / self.k - 2) + 1)/100)
+        loss_fn = nn.BCEWithLogitsLoss(weight=(modified_target.flatten() * (1 / self.k - 2) + 1) / 100)
         loss = loss_fn(output.flatten(), modified_target.flatten())
 
         return loss
@@ -73,8 +74,8 @@ class top_k_percent_two_side(nn.Module):
         super().__init__()
         self.loss = top_k_percent_one_side(k)
 
-    def forward(self, a, b):
-        return self.loss(a, b) + self.loss(b, a)
+    def forward(self, activation, prediction):
+        return self.loss(activation, prediction) + self.loss(prediction, activation)
 
 
 class MonoBasicBlock(nn.Module):
@@ -96,6 +97,7 @@ class MonoBasicBlock(nn.Module):
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU())
+        self.residual_function_first_part_b = nn.Parameter(torch.zeros(out_channels))
 
         self.residual_feature_first_part = nn.Sequential(
             nn.Linear(clipd, out_channels),
@@ -104,6 +106,7 @@ class MonoBasicBlock(nn.Module):
             nn.Conv2d(out_channels, out_channels * BasicBlock.expansion, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(out_channels * BasicBlock.expansion)
         )
+        self.residual_function_second_part_b = nn.Parameter(torch.zeros(out_channels * BasicBlock.expansion))
         self.residual_feature_whole_part = nn.Sequential(
             nn.Linear(clipd, out_channels * BasicBlock.expansion),
         )
@@ -121,16 +124,24 @@ class MonoBasicBlock(nn.Module):
         # self.loss = nn.ReLUMSELoss()
         self.loss = top_k_percent_two_side(0.05)
 
-    def forward(self, x, clip_embeddings):
+
+    def forward(self, x, clip_embeddings, activations=False):
         step1 = self.residual_function_first_part(x)
         x = nn.ReLU()(self.residual_function_second_part(step1) + self.shortcut(x))
         # print("step1.shape:", step1.flatten(start_dim=2).mean(dim=2).shape, "pred.shape:", self.residual_feature_first_part(clip_embeddings).shape)
         # print("step2.shape:", x.flatten(start_dim=2).mean(dim=2).shape, "pred.shape:", self.residual_feature_whole_part(clip_embeddings).shape)
         # print()
-        return (x,
-                self.loss(step1.flatten(start_dim=2).mean(dim=2), self.residual_feature_first_part(clip_embeddings)) + \
-                self.loss(x.flatten(start_dim=2).mean(dim=2), self.residual_feature_whole_part(clip_embeddings))
-                )
+        if activations:
+            print("IT GET HERE!")
+            return (x,
+                    [[step1.flatten(start_dim=2).mean(dim=2)+self.residual_function_first_part_b, self.residual_feature_first_part(clip_embeddings)],
+                     [x.flatten(start_dim=2).mean(dim=2)+self.residual_function_second_part_b, self.residual_feature_whole_part(clip_embeddings)]]
+                    )
+        else:
+            return (x,
+                    self.loss(step1.flatten(start_dim=2).mean(dim=2)+self.residual_function_first_part_b, self.residual_feature_first_part(clip_embeddings)) + \
+                    self.loss(x.flatten(start_dim=2).mean(dim=2)+self.residual_function_second_part_b, self.residual_feature_whole_part(clip_embeddings))
+                    )
 
 
 class MonoSequential(nn.Module):
@@ -138,10 +149,10 @@ class MonoSequential(nn.Module):
         super().__init__()
         self.layers = nn.ModuleList(layers)
 
-    def forward(self, x, clip_embeddings):
+    def forward(self, x, clip_embeddings, activations=False):
         l = 0.0
         for layer in self.layers:
-            x, ln = layer(x, clip_embeddings)
+            x, ln = layer(x, clip_embeddings, activations=activations)
             l += ln
         return x, l
 
@@ -236,14 +247,14 @@ class ResNet(nn.Module):
 
 
 class MonoResNet(ResNet):
-    def forward(self, x, clip_embedding):
+    def forward(self, x, clip_embedding, activations=False):
         output = self.conv1(x)
-        output, l = self.conv2_x(output, clip_embedding)
-        output, ln = self.conv3_x(output, clip_embedding)
+        output, l = self.conv2_x(output, clip_embedding, activations=activations)
+        output, ln = self.conv3_x(output, clip_embedding, activations=activations)
         l += ln
-        output, ln = self.conv4_x(output, clip_embedding)
+        output, ln = self.conv4_x(output, clip_embedding, activations=activations)
         l += ln
-        output, ln = self.conv5_x(output, clip_embedding)
+        output, ln = self.conv5_x(output, clip_embedding, activations=activations)
         l += ln
         output = self.avg_pool(output)
         output = output.view(output.size(0), -1)
