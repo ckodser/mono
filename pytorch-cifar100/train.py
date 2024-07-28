@@ -184,6 +184,8 @@ def eval_training(epoch=0, tb=True):
             modified_prediction = torch.zeros_like(prediction)
             modified_prediction.scatter_(0, top_k_indices, 1)
 
+            print(confusion_matrix(modified_activation.to(torch.int).flatten().cpu(),
+                                              modified_prediction.to(torch.int).flatten().cpu()))
             tn, fp, fn, tp = confusion_matrix(modified_activation.to(torch.int).flatten().cpu(),
                                               modified_prediction.to(torch.int).flatten().cpu())
             print(f"tn:{tn}, fp:{fp}, fn:{fn}, tp:{tp} XXX top1% ", end="")
