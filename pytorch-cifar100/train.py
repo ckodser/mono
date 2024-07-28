@@ -168,7 +168,7 @@ def eval_training(epoch=0, tb=True):
 
     if args.mono:
         from sklearn.metrics import confusion_matrix
-        for name, param in model.named_parameters():
+        for name, param in net.named_parameters():
             if "_part_b" in name:
                 print(f"{name}| mean: {param.mean().item()}, variance: {param.var().item()}")
 
