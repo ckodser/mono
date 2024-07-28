@@ -132,7 +132,6 @@ class MonoBasicBlock(nn.Module):
         # print("step2.shape:", x.flatten(start_dim=2).mean(dim=2).shape, "pred.shape:", self.residual_feature_whole_part(clip_embeddings).shape)
         # print()
         if activations:
-            print("IT GET HERE!")
             return (x,
                     [[step1.flatten(start_dim=2).mean(dim=2)+self.residual_function_first_part_b, self.residual_feature_first_part(clip_embeddings)],
                      [x.flatten(start_dim=2).mean(dim=2)+self.residual_function_second_part_b, self.residual_feature_whole_part(clip_embeddings)]]
