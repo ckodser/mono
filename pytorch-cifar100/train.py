@@ -155,9 +155,10 @@ def eval_training(epoch=0, tb=True):
                     activations.append(activation)
                     predictions.append(prediction)
                 else:
-                    print(activations[i].shape, activation.shape)
-                    activations[i] = torch.cat(activations[i], activation, dim=0)
-                    predictions[i] = torch.cat(predictions[i], prediction, dim=0)
+                    print(activations[i].shape, activation.shape, "=>", end="")
+                    activations[i] = torch.cat((activations[i], activation), dim=0)
+                    predictions[i] = torch.cat((predictions[i], prediction), dim=0)
+                    print(activations[i].shape)
 
         else:
             outputs = net(images)
