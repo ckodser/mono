@@ -150,7 +150,7 @@ def eval_training(epoch=0, tb=True):
             im, clipembedding = images
             outputs = net(im, clipembedding, activations=True)
             outputs = outputs[0]
-            print("OUTPUTS[1]:", ouputs[1].shape)
+            print("OUTPUTS[1]:", outputs[1].shape)
             for i, (activation, prediction) in enumerate(outputs[1]):
                 if len(activations) == 0:
                     activations.append(activation)
