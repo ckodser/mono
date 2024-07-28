@@ -185,8 +185,9 @@ def eval_training(epoch=0, tb=True):
             modified_prediction.scatter_(0, top_k_indices, 1)
 
             (tn, fp), (fn, tp) = confusion_matrix(modified_activation.to(torch.int).flatten().cpu(),
-                                              modified_prediction.to(torch.int).flatten().cpu())
-            print(f"tn:{tn/10000}, fp:{fp/10000}, fn:{fn/10000}, tp:{tp/10000} XXX top1% ", end="")
+                                                  modified_prediction.to(torch.int).flatten().cpu())
+            total_samples = tn + fp + fn + tp
+            print(f"tn:{tn / total_samples}, fp:{fp / total_samples}, fn:{fn / total_samples}, tp:{tp / total_samples} XXX top1% ", end="")
 
             top_k = int(0.01 * num_elements)
 
@@ -199,8 +200,9 @@ def eval_training(epoch=0, tb=True):
             modified_prediction.scatter_(0, top_k_indices, 1)
 
             (tn, fp), (fn, tp) = confusion_matrix(modified_activation.to(torch.int).flatten().cpu(),
-                                              modified_prediction.to(torch.int).flatten().cpu())
-            print(f"tn:{tn/10000}, fp:{fp/10000}, fn:{fn/10000}, tp:{tp/10000}")
+                                                  modified_prediction.to(torch.int).flatten().cpu())
+            total_samples = tn + fp + fn + tp
+            print(f"tn:{tn / total_samples}, fp:{fp / total_samples}, fn:{fn / total_samples}, tp:{tp / total_samples}")
 
     finish = time.time()
     if args.gpu:
