@@ -150,7 +150,10 @@ class MonoSequential(nn.Module):
         self.layers = nn.ModuleList(layers)
 
     def forward(self, x, clip_embeddings, activations=False):
-        l = 0.0
+        if activations:
+            l = []
+        else:
+            l = 0.0
         for layer in self.layers:
             x, ln = layer(x, clip_embeddings, activations=activations)
             l += ln
