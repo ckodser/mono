@@ -148,7 +148,7 @@ def eval_training(epoch=0, tb=True):
 
         if args.mono:
             im, clipembedding = images
-            outputs = net(im, clipembedding, activation=True)
+            outputs = net(im, clipembedding, activations=True)
             outputs = outputs[0]
             for i, (activation, prediction) in enumerate(outputs[1]):
                 if len(activations) == 0:
