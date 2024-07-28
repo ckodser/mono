@@ -187,7 +187,12 @@ def eval_training(epoch=0, tb=True):
             (tn, fp), (fn, tp) = confusion_matrix(modified_activation.to(torch.int).flatten().cpu(),
                                                   modified_prediction.to(torch.int).flatten().cpu())
             total_samples = tn + fp + fn + tp
-            print(f"tn:{tn / total_samples}, fp:{fp / total_samples}, fn:{fn / total_samples}, tp:{tp / total_samples} XXX top1% ", end="")
+            print("tn:{:.3f}, fp:{:.3f}, fn:{:.3f}, tp:{:.3f} XXX top1% ".format(
+                tn / total_samples,
+                fp / total_samples,
+                fn / total_samples,
+                tp / total_samples
+            ), end="")
 
             top_k = int(0.01 * num_elements)
 
@@ -202,7 +207,11 @@ def eval_training(epoch=0, tb=True):
             (tn, fp), (fn, tp) = confusion_matrix(modified_activation.to(torch.int).flatten().cpu(),
                                                   modified_prediction.to(torch.int).flatten().cpu())
             total_samples = tn + fp + fn + tp
-            print(f"tn:{tn / total_samples}, fp:{fp / total_samples}, fn:{fn / total_samples}, tp:{tp / total_samples}")
+            print("tn:{:.3f}, fp:{:.3f}, fn:{:.3f}, tp:{:.3f}".format(
+                tn / total_samples,
+                fp / total_samples,
+                fn / total_samples,
+                tp / total_samples))
 
     finish = time.time()
     if args.gpu:
