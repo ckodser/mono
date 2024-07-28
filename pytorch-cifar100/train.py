@@ -167,7 +167,14 @@ def eval_training(epoch=0, tb=True):
         correct += preds.eq(labels).sum()
 
     if args.mono:
-        from sklearn.metrics import confusion_matrix
+        def confusion_matrix(target, prediction):
+            tp = torch.sum((target == 1) & (prediction == 1)).item()
+            tn = torch.sum((target == 0) & (prediction == 0)).item()
+            fp = torch.sum((target == 0) & (prediction == 1)).item()
+            fn = torch.sum((target == 1) & (prediction == 0)).item()
+            
+            return (tn, fp), (fn, tp)
+
         for name, param in net.named_parameters():
             if "_part_b" in name:
                 print(f"{name}| mean: {param.mean().item()}, std: {param.std().item()}")
@@ -188,8 +195,8 @@ def eval_training(epoch=0, tb=True):
             modified_prediction = torch.zeros_like(prediction)
             modified_prediction.scatter_(0, top_k_indices, 1)
 
-            (tn, fp), (fn, tp) = confusion_matrix(modified_activation.to(torch.int).flatten().cpu(),
-                                                  modified_prediction.to(torch.int).flatten().cpu())
+            (tn, fp), (fn, tp) = confusion_matrix(modified_activation.to(torch.int).flatten(),
+                                                  modified_prediction.to(torch.int).flatten())
             total_samples = tn + fp + fn + tp
             print("tn:{:.4f}, fp:{:.4f}, fn:{:.4f}, tp:{:.4f} | top1% ".format(
                 tn / total_samples,
@@ -208,8 +215,8 @@ def eval_training(epoch=0, tb=True):
             modified_prediction = torch.zeros_like(prediction)
             modified_prediction.scatter_(0, top_k_indices, 1)
 
-            (tn, fp), (fn, tp) = confusion_matrix(modified_activation.to(torch.int).flatten().cpu(),
-                                                  modified_prediction.to(torch.int).flatten().cpu())
+            (tn, fp), (fn, tp) = confusion_matrix(modified_activation.to(torch.int).flatten(),
+                                                  modified_prediction.to(torch.int).flatten())
             total_samples = tn + fp + fn + tp
             print("tn:{:.4f}, fp:{:.4f}, fn:{:.4f}, tp:{:.4f}".format(
                 tn / total_samples,
