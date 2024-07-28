@@ -169,7 +169,7 @@ def eval_training(epoch=0, tb=True):
     if args.mono:
         from sklearn.metrics import confusion_matrix
         for i in range(len(activations)):
-            print(f"Layer {i}: top5% ", end="")
+            print(f"Layer {i} |top5% ", end="")
             activation = activations[i]  # torch.concatinate(activations, dim=1)
             prediction = predictions[i]  # torch.concatinate(predictions, dim=1)
 
@@ -187,7 +187,7 @@ def eval_training(epoch=0, tb=True):
             (tn, fp), (fn, tp) = confusion_matrix(modified_activation.to(torch.int).flatten().cpu(),
                                                   modified_prediction.to(torch.int).flatten().cpu())
             total_samples = tn + fp + fn + tp
-            print("tn:{:.4f}, fp:{:.4f}, fn:{:.4f}, tp:{:.4f} XXX top1% ".format(
+            print("tn:{:.4f}, fp:{:.4f}, fn:{:.4f}, tp:{:.4f} | top1% ".format(
                 tn / total_samples,
                 fp / total_samples,
                 fn / total_samples,
@@ -207,7 +207,7 @@ def eval_training(epoch=0, tb=True):
             (tn, fp), (fn, tp) = confusion_matrix(modified_activation.to(torch.int).flatten().cpu(),
                                                   modified_prediction.to(torch.int).flatten().cpu())
             total_samples = tn + fp + fn + tp
-            print("tn:{:.4f}, fp:{:.4f}, fn:{:.4f}, tp:{:.4f}".format(
+            print("tn:{:.4f}, fp:{:.4f}, fn:{:.4f}, tp:{:.4f}|".format(
                 tn / total_samples,
                 fp / total_samples,
                 fn / total_samples,
