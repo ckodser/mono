@@ -172,7 +172,7 @@ def eval_training(epoch=0, tb=True):
             tn = torch.sum((target == 0) & (prediction == 0)).item()
             fp = torch.sum((target == 0) & (prediction == 1)).item()
             fn = torch.sum((target == 1) & (prediction == 0)).item()
-            
+
             return (tn, fp), (fn, tp)
 
         for name, param in net.named_parameters():
