@@ -148,10 +148,8 @@ def eval_training(epoch=0, tb=True):
 
         if args.mono:
             im, clipembedding = images
-            outputs = net(im, clipembedding, activations=True)
-            outputs = outputs[0]
-            print("OUTPUTS[1]:", type(outputs[1]))
-            for i, (activation, prediction) in enumerate(outputs[1]):
+            outputs, ac = net(im, clipembedding, activations=True)
+            for i, (activation, prediction) in enumerate(ac):
                 if len(activations) == 0:
                     activations.append(activation)
                     predictions.append(prediction)
