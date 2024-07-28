@@ -156,7 +156,6 @@ def eval_training(epoch=0, tb=True):
                 else:
                     activations[i] = torch.cat((activations[i], activation), dim=0)
                     predictions[i] = torch.cat((predictions[i], prediction), dim=0)
-                    print(activations[i].shape)
 
         else:
             outputs = net(images)
@@ -185,7 +184,7 @@ def eval_training(epoch=0, tb=True):
             modified_prediction = torch.zeros_like(prediction)
             modified_prediction.scatter_(0, top_k_indices, 1)
 
-            tn, fp, fn, tp = confusion_matrix(modified_activation.flatten(), modified_prediction.flatten())
+            tn, fp, fn, tp = confusion_matrix(modified_activation.flatten().cpu(), modified_prediction.flatten().cpu())
             print(f"tn:{tn}, fp:{fp}, fn:{fn}, tp:{tp} XXX top1% ", end="")
 
             top_k = int(0.01 * num_elements)
@@ -198,7 +197,7 @@ def eval_training(epoch=0, tb=True):
             modified_prediction = torch.zeros_like(prediction)
             modified_prediction.scatter_(0, top_k_indices, 1)
 
-            tn, fp, fn, tp = confusion_matrix(modified_activation.flatten(), modified_prediction.flatten())
+            tn, fp, fn, tp = confusion_matrix(modified_activation.flatten().cpu(), modified_prediction.flatten().cpu())
             print(f"tn:{tn}, fp:{fp}, fn:{fn}, tp:{tp}")
 
     finish = time.time()
