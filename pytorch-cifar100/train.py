@@ -170,7 +170,7 @@ def eval_training(epoch=0, tb=True):
         from sklearn.metrics import confusion_matrix
         for name, param in net.named_parameters():
             if "_part_b" in name:
-                print(f"{name}| mean: {param.mean().item()}, variance: {param.var().item()}")
+                print(f"{name}| mean: {param.mean().item()}, std: {param.std().item()}")
 
         for i in range(len(activations)):
             print(f"Layer {i} |top5% ", end="")
