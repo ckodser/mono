@@ -72,8 +72,9 @@ class top_k_percent_one_side(nn.Module):
 class top_k_percent_two_side(nn.Module):
     def __init__(self, k):
         super().__init__()
-        self.loss = top_k_percent_one_side(k)
-
+        # self.loss = top_k_percent_one_side(k)
+        self.loss = nn.MSELoss()
+        
     def forward(self, activation, prediction):
         return self.loss(activation, prediction) + self.loss(prediction, activation)
 
@@ -94,15 +95,15 @@ class MonoBasicBlock(nn.Module):
 
         # residual function
         self.residual_function_first_part = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU())
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False))
         self.residual_function_first_part_b = nn.Parameter(torch.zeros(out_channels))
 
         self.residual_feature_first_part = nn.Sequential(
             nn.Linear(clipd, out_channels),
         )
         self.residual_function_second_part = nn.Sequential(
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(),
             nn.Conv2d(out_channels, out_channels * BasicBlock.expansion, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(out_channels * BasicBlock.expansion)
         )
@@ -121,23 +122,23 @@ class MonoBasicBlock(nn.Module):
                 nn.BatchNorm2d(out_channels * BasicBlock.expansion)
             )
 
-        # self.loss = nn.ReLUMSELoss()
         self.loss = top_k_percent_two_side(0.05)
 
 
     def forward(self, x, clip_embeddings, activations=False):
         step1 = self.residual_function_first_part(x)
-        x = nn.ReLU()(self.residual_function_second_part(step1) + self.shortcut(x))
+        x = self.residual_function_second_part(step1) + self.shortcut(x)
+        fx = nn.ReLU()(x)
         # print("step1.shape:", step1.flatten(start_dim=2).mean(dim=2).shape, "pred.shape:", self.residual_feature_first_part(clip_embeddings).shape)
         # print("step2.shape:", x.flatten(start_dim=2).mean(dim=2).shape, "pred.shape:", self.residual_feature_whole_part(clip_embeddings).shape)
         # print()
         if activations:
-            return (x,
+            return (fx,
                     [[step1.flatten(start_dim=2).mean(dim=2)+self.residual_function_first_part_b, self.residual_feature_first_part(clip_embeddings)],
                      [x.flatten(start_dim=2).mean(dim=2)+self.residual_function_second_part_b, self.residual_feature_whole_part(clip_embeddings)]]
                     )
         else:
-            return (x,
+            return (fx,
                     self.loss(step1.flatten(start_dim=2).mean(dim=2)+self.residual_function_first_part_b, self.residual_feature_first_part(clip_embeddings)) + \
                     self.loss(x.flatten(start_dim=2).mean(dim=2)+self.residual_function_second_part_b, self.residual_feature_whole_part(clip_embeddings))
                     )
