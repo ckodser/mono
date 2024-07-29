@@ -84,12 +84,13 @@ class kllogit(nn.Module):
 class top_k_percent_two_side(nn.Module):
     def __init__(self, k):
         super().__init__()
-        # self.loss = top_k_percent_one_side(k)
+        self.topk = top_k_percent_one_side(k)
         # self.loss = nn.MSELoss()
         self.loss = kllogit()
 
     def forward(self, activation, prediction):
-        return self.loss(activation, prediction) + self.loss(prediction, activation)
+        return self.loss(activation, prediction) + self.loss(prediction, activation) + \
+               self.topk(activation, prediction) + self.topk(prediction, activation)
 
 
 class MonoBasicBlock(nn.Module):
