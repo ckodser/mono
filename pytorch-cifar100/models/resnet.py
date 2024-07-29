@@ -69,12 +69,25 @@ class top_k_percent_one_side(nn.Module):
         return loss
 
 
+class kllogit(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.logsigmoid = nn.LogSigmoid()
+        self.loss = torch.nn.KLDivLoss(log_target=True)
+
+    def forward(self, activation, prediction):
+        activation = self.logsigmoid(activation)
+        prediction = self.logsigmoid(prediction)
+        return self.loss(prediction, activation)
+
+
 class top_k_percent_two_side(nn.Module):
     def __init__(self, k):
         super().__init__()
         # self.loss = top_k_percent_one_side(k)
-        self.loss = nn.MSELoss()
-        
+        # self.loss = nn.MSELoss()
+        self.loss = kllogit()
+
     def forward(self, activation, prediction):
         return self.loss(activation, prediction) + self.loss(prediction, activation)
 
@@ -124,7 +137,6 @@ class MonoBasicBlock(nn.Module):
 
         self.loss = top_k_percent_two_side(0.05)
 
-
     def forward(self, x, clip_embeddings, activations=False):
         step1 = self.residual_function_first_part(x)
         x = self.residual_function_second_part(step1) + self.shortcut(x)
@@ -134,13 +146,17 @@ class MonoBasicBlock(nn.Module):
         # print()
         if activations:
             return (fx,
-                    [[step1.flatten(start_dim=2).mean(dim=2)+self.residual_function_first_part_b, self.residual_feature_first_part(clip_embeddings)],
-                     [x.flatten(start_dim=2).mean(dim=2)+self.residual_function_second_part_b, self.residual_feature_whole_part(clip_embeddings)]]
+                    [[step1.flatten(start_dim=2).mean(dim=2) + self.residual_function_first_part_b,
+                      self.residual_feature_first_part(clip_embeddings)],
+                     [x.flatten(start_dim=2).mean(dim=2) + self.residual_function_second_part_b,
+                      self.residual_feature_whole_part(clip_embeddings)]]
                     )
         else:
             return (fx,
-                    self.loss(step1.flatten(start_dim=2).mean(dim=2)+self.residual_function_first_part_b, self.residual_feature_first_part(clip_embeddings)) + \
-                    self.loss(x.flatten(start_dim=2).mean(dim=2)+self.residual_function_second_part_b, self.residual_feature_whole_part(clip_embeddings))
+                    self.loss(step1.flatten(start_dim=2).mean(dim=2) + self.residual_function_first_part_b,
+                              self.residual_feature_first_part(clip_embeddings)) + \
+                    self.loss(x.flatten(start_dim=2).mean(dim=2) + self.residual_function_second_part_b,
+                              self.residual_feature_whole_part(clip_embeddings))
                     )
 
 
