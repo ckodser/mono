@@ -218,6 +218,25 @@ def eval_training(epoch=0, tb=True):
             (tn, fp), (fn, tp) = confusion_matrix(modified_activation.to(torch.int).flatten(),
                                                   modified_prediction.to(torch.int).flatten())
             total_samples = tn + fp + fn + tp
+            print("tn:{:.4f}, fp:{:.4f}, fn:{:.4f}, tp:{:.4f} | top10%".format(
+                tn / total_samples,
+                fp / total_samples,
+                fn / total_samples,
+                tp / total_samples))
+
+            top_k = int(0.1 * num_elements)
+
+            _, top_k_indices = torch.topk(activation, top_k, dim=0)
+            modified_activation = torch.zeros_like(activation)
+            modified_activation.scatter_(0, top_k_indices, 1)
+
+            _, top_k_indices = torch.topk(prediction, top_k, dim=0)
+            modified_prediction = torch.zeros_like(prediction)
+            modified_prediction.scatter_(0, top_k_indices, 1)
+
+            (tn, fp), (fn, tp) = confusion_matrix(modified_activation.to(torch.int).flatten(),
+                                                  modified_prediction.to(torch.int).flatten())
+            total_samples = tn + fp + fn + tp
             print("tn:{:.4f}, fp:{:.4f}, fn:{:.4f}, tp:{:.4f}".format(
                 tn / total_samples,
                 fp / total_samples,

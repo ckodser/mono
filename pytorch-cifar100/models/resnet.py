@@ -89,8 +89,7 @@ class top_k_percent_two_side(nn.Module):
         self.loss = kllogit()
 
     def forward(self, activation, prediction):
-        return self.loss(activation, prediction) + self.loss(prediction, activation)
-    # self.topk(activation, prediction) + self.topk(prediction, activation)
+        return self.topk(activation, prediction) + self.topk(prediction, activation)
 
 
 
