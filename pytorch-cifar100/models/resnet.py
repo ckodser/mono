@@ -76,9 +76,9 @@ class kllogit(nn.Module):
         self.loss = torch.nn.KLDivLoss(log_target=True)
 
     def forward(self, activation, prediction):
-        activation = self.logsigmoid(activation)
-        prediction = self.logsigmoid(prediction)
-        return self.loss(prediction, activation)
+        activationlogsig = self.logsigmoid(activation)
+        predictionlogsig = self.logsigmoid(prediction)
+        return self.loss(predictionlogsig, activationlogsig)
 
 
 class top_k_percent_two_side(nn.Module):
